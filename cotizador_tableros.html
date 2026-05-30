@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CotizadorCNC — Tableros Eléctricos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
+  :root{
+    --bg:#0e0f11;--surface:#16181c;--surface2:#1e2026;--surface3:#242730;
+    --border:#2a2d35;--accent:#e8ff47;--accent2:#47d4ff;--text:#e8eaf0;
+    --muted:#6b7080;--success:#47ffb2;--warn:#ffb347;--danger:#ff6b6b;
+    --mono:'DM Mono',monospace;--sans:'Syne',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:0 0 80px;}
+  header{border-bottom:1px solid var(--border);padding:18px 36px;display:flex;align-items:center;gap:16px;background:var(--surface);position:sticky;top:0;z-index:100;}
+  .logo{font-family:var(--sans);font-weight:800;font-size:19px;color:var(--accent);}
+  .subtitle{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;border-left:1px solid var(--border);padding-left:16px;}
+  .main{max-width:1400px;margin:0 auto;padding:32px 36px 0;display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+  .panel-header{padding:13px 18px;border-bottom:1px solid var(--border);font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+  .panel-body{padding:16px;}
+  .field{margin-bottom:13px;}
+  label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+  input[type="number"]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:14px;padding:9px 11px;transition:border-color .15s;-moz-appearance:textfield;}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;}
+  input:focus{outline:none;border-color:var(--accent);}
+  .dim-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+  .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .toggle-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .toggle-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 10px;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .toggle-btn.active{background:rgba(232,255,71,.1);border-color:var(--accent);color:var(--accent);}
+  .calc-btn{width:100%;background:var(--accent);color:#0e0f11;border:none;border-radius:8px;font-family:var(--sans);font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;padding:14px;cursor:pointer;transition:all .15s;margin-top:4px;}
+  .calc-btn:hover{background:#f5ff6e;transform:translateY(-1px);}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;}
+  .tab{flex:1;padding:10px 8px;text-align:center;font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:7px;transition:all .15s;color:var(--muted);}
+  .tab.active{background:var(--accent);color:#0e0f11;}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+
+  /* HERO */
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+  .hero-card{border-radius:12px;padding:24px;border:1px solid;}
+  .hero-card.precio{background:linear-gradient(135deg,rgba(232,255,71,.08),transparent);border-color:rgba(232,255,71,.3);}
+  .hero-card.costo{background:linear-gradient(135deg,rgba(71,212,255,.06),transparent);border-color:rgba(71,212,255,.2);}
+  .hero-card .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .hero-card .amount{font-family:var(--sans);font-size:36px;font-weight:800;line-height:1;letter-spacing:-1px;}
+  .hero-card.precio .amount{color:var(--accent);}
+  .hero-card.costo .amount{color:var(--accent2);}
+  .hero-card .sub{font-size:11px;color:var(--muted);margin-top:6px;}
+
+  /* MARGEN BADGE */
+  .margen-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(71,255,178,.12);border:1px solid rgba(71,255,178,.25);border-radius:8px;padding:8px 14px;font-family:var(--sans);font-weight:700;font-size:20px;color:var(--success);}
+  .margen-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+  .margen-row .left{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+  .margen-row .left strong{display:block;font-size:22px;color:var(--success);font-family:var(--sans);font-weight:800;margin-top:4px;}
+
+  /* BARS */
+  .bar-section{margin-bottom:20px;}
+  .bar-label{display:flex;justify-content:space-between;margin-bottom:5px;font-size:11px;}
+  .bar-label span:first-child{color:var(--muted);}
+  .bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+
+  /* TABLA PIEZAS */
+  .pieces-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  thead th{padding:9px 10px;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);text-align:right;font-weight:500;white-space:nowrap;}
+  thead th:first-child{text-align:left;}
+  tbody td{padding:10px 10px;border-bottom:1px solid rgba(42,45,53,.5);text-align:right;color:var(--muted);}
+  tbody td:first-child{text-align:left;color:var(--text);}
+  tbody tr:hover td{background:rgba(255,255,255,.02);}
+  tfoot td{padding:10px 10px;text-align:right;font-weight:600;border-top:1px solid var(--border);color:var(--text);font-size:12px;}
+  tfoot td:first-child{text-align:left;}
+
+  .piece-name{font-family:var(--sans);font-weight:600;font-size:12px;}
+  .piece-dim{font-size:10px;color:var(--muted);margin-top:1px;}
+  .badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;text-transform:uppercase;font-weight:600;margin-left:5px;background:rgba(71,212,255,.12);color:var(--accent2);border:1px solid rgba(71,212,255,.2);}
+  .pct-pill{display:inline-block;font-size:9px;padding:2px 6px;border-radius:10px;font-weight:600;}
+  .pct-high{background:rgba(71,255,178,.15);color:var(--success);}
+  .pct-mid{background:rgba(255,179,71,.15);color:var(--warn);}
+  .pct-low{background:rgba(255,107,107,.15);color:var(--danger);}
+
+  /* DESGLOSE COSTOS TAB */
+  .cost-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+  .cost-sum-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+  .cost-sum-card .cs-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .cost-sum-card .cs-val{font-family:var(--sans);font-size:22px;font-weight:700;}
+  .cost-sum-card .cs-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+  .cost-sum-card .cs-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden;}
+  .cost-sum-card .cs-bar-fill{height:100%;border-radius:2px;}
+
+  .disclaimer{font-size:10px;color:var(--muted);padding:11px 14px;background:var(--surface2);border-radius:6px;border-left:2px solid var(--border);line-height:1.7;margin-top:14px;}
+  .results-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;color:var(--muted);text-align:center;gap:12px;}
+  .results-empty .icon{font-size:48px;opacity:.3;}
+  @media(max-width:960px){.main{grid-template-columns:1fr;padding:18px;}.hero-grid{grid-template-columns:1fr;}.cost-summary-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">DISEÑADO CNC</div>
+  <div class="subtitle">Cotización — Tableros Eléctricos</div>
+</header>
+<div class="main">
+  <!-- INPUTS -->
+  <div>
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Dimensionado</div>
+      <div class="panel-body">
+        <div class="dim-grid">
+          <div class="field"><label>Alto A (mm)</label><input type="number" id="alto" value="2000" min="100"></div>
+          <div class="field"><label>Ancho B (mm)</label><input type="number" id="ancho" value="600" min="100"></div>
+          <div class="field"><label>Prof. C (mm)</label><input type="number" id="prof" value="300" min="100"></div>
+        </div>
+        <div class="field"><label>Espesor plancha (mm)</label><input type="number" id="espesor" value="2" min="1" max="6" step="0.5"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="dot" style="background:var(--accent2)"></span>Precios Insumos</div>
+      <div class="panel-body">
+        <div class="price-grid">
+          <div class="field"><label>Plancha ($/kg)</label><input type="number" id="preciopl" value="900"></div>
+          <div class="field"><label>Goma espuma ($/ml)</label><input type="number" id="preciogoma" value="3000"></div>
+          <div class="field"><label>Perno ($/und)</label><input type="number" id="precioperno" value="300"></div>
+          <div class="field"><label>Bisagra ($/und)</label><input type="number" id="preciobisagra" value="2300"></div>
+          <div class="field"><label>Cerradura española ($)</label><input type="number" id="preciocerrEsp" value="50000"></div>
+          <div class="field"><label>Cerradura moneda ($)</label><input type="number" id="preciocerrMon" value="3500"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="dot" style="background:var(--success)"></span>Accesorios</div>
+      <div class="panel-body">
+        <div class="toggle-grid">
+          <button class="toggle-btn" id="btn_puerta_int" onclick="toggleAcc('puerta_int')">🚪 Puerta Interna</button>
+          <button class="toggle-btn active" id="btn_placa_mont" onclick="toggleAcc('placa_mont')">🔩 Placa Montaje</button>
+          <button class="toggle-btn" id="btn_techo" onclick="toggleAcc('techo')">🏗️ Techo</button>
+          <button class="toggle-btn" id="btn_zocalo" onclick="toggleAcc('zocalo')">📐 Zócalo</button>
+        </div>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calcular()">▶ Calcular Cotización</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="results-empty">
+      <div class="icon">⚡</div>
+      <p>Ingresa las dimensiones del tablero<br>y presiona <strong>Calcular Cotización</strong></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const accesorios={puerta_int:false,placa_mont:true,techo:false,zocalo:false};
+function toggleAcc(k){accesorios[k]=!accesorios[k];document.getElementById('btn_'+k).classList.toggle('active',accesorios[k]);}
+const fmt=n=>'$'+Math.round(n).toLocaleString('es-CL');
+const fmtPct=n=>n.toFixed(1)+'%';
+
+// Factores de margen
+const F_INS  = 1.15*1.22;   // insumos: factor sobre costo → precio
+const F_PROC = 1.15*1.70;   // procesos: factor incluido en PU
+// Margen sobre precio venta:
+const MRG_INS  = 1 - 1/F_INS;   // 28.7%
+const MRG_PROC = 1 - 1/F_PROC;  // 48.8%
+
+function costoDePrice(precio, esInsumo){
+  return precio / (esInsumo ? F_INS : F_PROC);
+}
+
+function calcular(){
+  const A=+document.getElementById('alto').value;
+  const B=+document.getElementById('ancho').value;
+  const C=+document.getElementById('prof').value;
+  const e=+document.getElementById('espesor').value;
+  const PRECIO_PL=+document.getElementById('preciopl').value;
+  const PRECIO_GOMA=+document.getElementById('preciogoma').value;
+  const PRECIO_PERNO=+document.getElementById('precioperno').value;
+  const PRECIO_BIS=+document.getElementById('preciobisagra').value;
+  const PRECIO_CERR_ESP=+document.getElementById('preciocerrEsp').value;
+  const PRECIO_CERR_MON=+document.getElementById('preciocerrMon').value;
+
+  const PU_CNC_mm=0.477, F_CNC=1.4, PU_PLEG=468.37, PU_MIG=6444, PU_PINT=6819, PU_ENSAM=10795.125;
+
+  const pw=(dA,dB,c)=>((dA*dB)*1.05/1e6)*8*e*c;
+  const ar=(dA,dB,c)=>dA*dB*c/1e6;
+  const lng=(dA,dB,dp,kp,c)=>((dp*3.15*kp)+(2*(dA+dB)))*c;
+
+  // Devuelve {precio, costo} para cada sub-componente
+  function cncPl(M,I,fondo){
+    const p_proc = M*(fondo?PU_CNC_mm:F_CNC);
+    const p_ins  = I*PRECIO_PL*F_INS;
+    const precio = p_proc + p_ins;
+    const costo  = p_proc/F_PROC + I*PRECIO_PL;  // proceso↓APU, insumo al costo puro
+    return {precio, costo, p_proc, p_ins};
+  }
+  const plegP =(c,op,tp)=>c*op*tp*PU_PLEG;
+  const migP  =(c,S)=>c*S*2*PU_MIG/1000;
+  const pintP =(c,dA,dB)=>PU_PINT*2*ar(dA,dB,c);
+  const ensamP=(AE)=>PU_ENSAM*AE/60;
+  const aPernoP=(X)=>X*PRECIO_PERNO*F_INS;
+  const aGomaP=(Zmm)=>(Zmm/1000)*PRECIO_GOMA*F_INS;
+  const aBisagP=(AC)=>AC*PRECIO_BIS*F_INS;
+  const aCerrEP=(AB)=>AB*PRECIO_CERR_ESP*F_INS;
+  const aCerrMP=(AB)=>AB*PRECIO_CERR_MON*F_INS;
+
+  const K=A<1000?4:(A<1500?6:8);
+  const piezas=[];
+
+  function add(nom,cant,dA,dB,cnc_obj,pl,mg,pt,accs_precio,ens){
+    // cnc_obj tiene {precio, costo, p_proc, p_ins}
+    const proc_precio = cnc_obj.precio + pl + mg + pt + ens;
+    const proc_costo  = cnc_obj.costo  + pl/F_PROC + mg/F_PROC + pt/F_PROC + ens/F_PROC;
+    const accs_costo  = accs_precio/F_INS;
+    const precio_total = proc_precio + accs_precio;
+    const costo_total  = proc_costo  + accs_costo;
+    const margen       = precio_total - costo_total;
+    const pct_margen   = precio_total>0 ? margen/precio_total*100 : 0;
+    piezas.push({nom,cant,dA:Math.round(dA),dB:Math.round(dB),
+      precio_total, costo_total, margen, pct_margen,
+      desg:{
+        cnc_precio:cnc_obj.precio, cnc_costo:cnc_obj.costo,
+        pl_precio:pl, pl_costo:pl/F_PROC,
+        mg_precio:mg, mg_costo:mg/F_PROC,
+        pt_precio:pt, pt_costo:pt/F_PROC,
+        accs_precio, accs_costo,
+        ens_precio:ens, ens_costo:ens/F_PROC
+      }
+    });
+  }
+
+  // FONDO
+  const Mf=lng(A,B,8,K,1),If=pw(A,B,1);
+  add('FONDO',1,A,B,cncPl(Mf,If,true),0,migP(1,2*(A+B)),pintP(1,A,B),0,ensamP(0));
+
+  // LATERAL
+  const dAl=C+62,Il=pw(dAl,A,2),Ml=lng(dAl,A,8,K,2);
+  add('LATERAL',2,dAl,A,cncPl(Ml,Il,false),plegP(2,2,1.5),migP(2,C+60),pintP(2,dAl,A),
+    aPernoP(K)+aCerrEP(1),ensamP(2*K+60));
+
+  // CABEZAL
+  const dAc=C+62,Ic=pw(dAc,B,2),Mc=lng(dAc,B,12,8,2);
+  add('CABEZAL',2,dAc,B,cncPl(Mc,Ic,false),plegP(2,2,1),migP(2,C+60),pintP(2,dAc,B),0,ensamP(0));
+
+  // PUERTA EXTERNA
+  const dApe=A+40,dBpe=B+40,Ipe=pw(dApe,dBpe,1),Mpe=lng(dApe,dBpe,10,K+6,1);
+  const Xpe=K+2,Zpe=2*(dApe+dBpe),ACpe=Math.floor(K/2),AEpe=2*Xpe+5*(Zpe/1000)+5*ACpe;
+  add('PTA. EXTERNA',1,dApe,dBpe,cncPl(Mpe,Ipe,false),plegP(1,4,1.5),migP(1,80),pintP(1,dApe,dBpe),
+    aPernoP(Xpe)+aGomaP(Zpe)+aBisagP(ACpe),ensamP(AEpe));
+
+  // REF. PUERTA
+  const dArp=Math.trunc(((A+B)*2-220)/4),Krp=Math.trunc(dArp/200);
+  const Irp=pw(dArp,47,4),Mrp=lng(dArp,47,8,Krp,4);
+  add('REF. PTA.',4,dArp,47,cncPl(Mrp,Irp,false),plegP(4,8,1.5),migP(4,70),pintP(4,dArp,47),0,ensamP(0));
+
+  // PUERTA INTERNA
+  if(accesorios.puerta_int){
+    const dApi=A-75,dBpi=B-50,Ipi=pw(dApi,dBpi,1),Mpi=lng(dApi,dBpi,10,K+2,1);
+    const Xpi=K,ACpi=Math.floor(Xpi/2),ABpi=A<1000?1:2,AEpi=2*Xpi+60*ABpi+5*ACpi;
+    add('PTA. INTERNA',1,dApi,dBpi,cncPl(Mpi,Ipi,false),plegP(1,4,1.5),migP(1,80),pintP(1,dApi,dBpi),
+      aPernoP(Xpi)+aBisagP(ACpi)+aCerrEP(ABpi),ensamP(AEpi));
+  }
+  // PLACA MONTAJE
+  if(accesorios.placa_mont){
+    const dApm=A-170,dBpm=B-50,Ipm=pw(dApm,dBpm,1),Mpm=lng(dApm,dBpm,12,K,1);
+    add('PL DE MONT.',1,dApm,dBpm,cncPl(Mpm,Ipm,false),plegP(1,4,1.5),migP(1,K*10),pintP(1,dApm,dBpm),
+      aPernoP(K),ensamP(2*K));
+  }
+  // TECHO
+  if(accesorios.techo){
+    const dAt=B,dBt=C+110,It=pw(dAt,dBt,1),Mt=lng(dAt,dBt,12,4,1);
+    add('TECHO',1,dAt,dBt,cncPl(Mt,It,false),plegP(1,3,1.5),0,pintP(1,dAt,dBt),aPernoP(4),ensamP(8));
+  }
+
+  const gran_precio=piezas.reduce((s,p)=>s+p.precio_total,0);
+  const gran_costo =piezas.reduce((s,p)=>s+p.costo_total,0);
+  const precio_venta=Math.round(gran_precio/500)*500;
+  const margen_total=precio_venta-gran_costo;
+  const pct_total=margen_total/precio_venta*100;
+
+  renderResults(piezas,precio_venta,gran_costo,margen_total,pct_total,gran_precio,A,B,C,e);
+}
+
+function pctClass(p){return p>=45?'pct-high':p>=30?'pct-mid':'pct-low';}
+
+function renderResults(piezas,precio_venta,gran_costo,margen_total,pct_total,raw,A,B,C,e){
+  const peso=piezas.reduce((s,p)=>s+(p.dA*p.dB/1e6)*(+document.getElementById('espesor').value)*8*p.cant,0);
+
+  // Totales por tipo de proceso
+  const tot=k=>piezas.reduce((s,p)=>s+p.desg[k],0);
+
+  const html=`
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('resumen')">📊 Resumen</div>
+    <div class="tab" onclick="showTab('margen')">💰 Márgenes</div>
+    <div class="tab" onclick="showTab('piezas')">🔩 Por Pieza</div>
+    <div class="tab" onclick="showTab('costos')">🏭 Costos Empresa</div>
+  </div>
+
+  <!-- TAB RESUMEN -->
+  <div id="tab-resumen" class="tab-content active">
+    <div class="hero-grid">
+      <div class="hero-card precio">
+        <div class="label">Precio de Venta</div>
+        <div class="amount">${fmt(precio_venta)}</div>
+        <div class="sub">${A}×${B}×${C} mm · e=${e}mm · ${peso.toFixed(1)} kg</div>
+      </div>
+      <div class="hero-card costo">
+        <div class="label">Costo Empresa</div>
+        <div class="amount">${fmt(gran_costo)}</div>
+        <div class="sub">Subtotal antes redondeo: ${fmt(raw)}</div>
+      </div>
+    </div>
+    <div class="margen-row">
+      <div class="left">Ganancia Neta
+        <strong>${fmt(margen_total)}</strong>
+      </div>
+      <div class="margen-badge">
+        <span>▲</span>${fmtPct(pct_total)} sobre precio venta
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="dot"></span>Composición del Precio de Venta</div>
+      <div class="panel-body">
+        <div class="bar-section">
+          <div class="bar-label"><span>CNC + Plancha</span><span>${fmt(tot('cnc_precio'))}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${tot('cnc_precio')/raw*100}%;background:var(--accent)"></div></div>
+        </div>
+        <div class="bar-section">
+          <div class="bar-label"><span>Soldadura MIG</span><span>${fmt(tot('mg_precio'))}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${tot('mg_precio')/raw*100}%;background:#a78bfa"></div></div>
+        </div>
+        <div class="bar-section">
+          <div class="bar-label"><span>Plegado</span><span>${fmt(tot('pl_precio'))}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${tot('pl_precio')/raw*100}%;background:var(--warn)"></div></div>
+        </div>
+        <div class="bar-section">
+          <div class="bar-label"><span>Pintura</span><span>${fmt(tot('pt_precio'))}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${tot('pt_precio')/raw*100}%;background:#f472b6"></div></div>
+        </div>
+        <div class="bar-section">
+          <div class="bar-label"><span>Accesorios</span><span>${fmt(tot('accs_precio'))}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${tot('accs_precio')/raw*100}%;background:var(--accent2)"></div></div>
+        </div>
+        <div class="bar-section">
+          <div class="bar-label"><span>Ensamblaje</span><span>${fmt(tot('ens_precio'))}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${tot('ens_precio')/raw*100}%;background:var(--success)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB MÁRGENES -->
+  <div id="tab-margen" class="tab-content">
+    <div class="panel">
+      <div class="panel-header"><span class="dot" style="background:var(--success)"></span>Margen de Ganancia por Pieza</div>
+      <div class="pieces-wrap">
+        <table>
+          <thead><tr>
+            <th>Pieza</th>
+            <th>Precio Venta</th>
+            <th>Costo Empresa</th>
+            <th>Ganancia $</th>
+            <th>Margen %</th>
+          </tr></thead>
+          <tbody>
+            ${piezas.map(p=>`
+            <tr>
+              <td><div class="piece-name">${p.nom}<span class="badge">${p.cant}x</span></div>
+                  <div class="piece-dim">${p.dA} × ${p.dB} mm</div></td>
+              <td>${fmt(p.precio_total)}</td>
+              <td>${fmt(p.costo_total)}</td>
+              <td style="color:var(--success)">${fmt(p.margen)}</td>
+              <td><span class="pct-pill ${pctClass(p.pct_margen)}">${fmtPct(p.pct_margen)}</span></td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr>
+            <td>TOTAL</td>
+            <td>${fmt(precio_venta)}</td>
+            <td>${fmt(gran_costo)}</td>
+            <td style="color:var(--success)">${fmt(margen_total)}</td>
+            <td><span class="pct-pill ${pctClass(pct_total)}">${fmtPct(pct_total)}</span></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="panel-header"><span class="dot" style="background:var(--warn)"></span>Margen por Tipo de Proceso</div>
+      <div class="pieces-wrap">
+        <table>
+          <thead><tr><th>Proceso</th><th>Precio</th><th>Costo</th><th>Ganancia $</th><th>Margen %</th><th>% del Total</th></tr></thead>
+          <tbody>
+            ${[
+              ['CNC + Plancha','cnc_precio','cnc_costo'],
+              ['Soldadura MIG','mg_precio','mg_costo'],
+              ['Plegado','pl_precio','pl_costo'],
+              ['Pintura','pt_precio','pt_costo'],
+              ['Accesorios','accs_precio','accs_costo'],
+              ['Ensamblaje','ens_precio','ens_costo'],
+            ].map(([label,pk,ck])=>{
+              const tp=tot(pk),tc=tot(ck),gn=tp-tc,pm=tp>0?gn/tp*100:0;
+              return `<tr>
+                <td style="color:var(--text)">${label}</td>
+                <td>${fmt(tp)}</td><td>${fmt(tc)}</td>
+                <td style="color:var(--success)">${fmt(gn)}</td>
+                <td><span class="pct-pill ${pctClass(pm)}">${fmtPct(pm)}</span></td>
+                <td style="color:var(--muted)">${fmtPct(tp/raw*100)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB POR PIEZA -->
+  <div id="tab-piezas" class="tab-content">
+    <div class="panel">
+      <div class="panel-header"><span class="dot" style="background:var(--accent2)"></span>Desglose Completo por Pieza (Precio de Venta)</div>
+      <div class="pieces-wrap">
+        <table>
+          <thead><tr>
+            <th>Pieza</th><th>CNC+PL</th><th>Plegado</th><th>MIG</th>
+            <th>Pintura</th><th>Accesorios</th><th>Ensamblaje</th><th>Total Pieza</th>
+          </tr></thead>
+          <tbody>
+            ${piezas.map(p=>`
+            <tr>
+              <td><div class="piece-name">${p.nom}<span class="badge">${p.cant}x</span></div>
+                  <div class="piece-dim">${p.dA} × ${p.dB} mm</div></td>
+              <td>${fmt(p.desg.cnc_precio)}</td>
+              <td>${fmt(p.desg.pl_precio)}</td>
+              <td>${fmt(p.desg.mg_precio)}</td>
+              <td>${fmt(p.desg.pt_precio)}</td>
+              <td>${fmt(p.desg.accs_precio)}</td>
+              <td>${fmt(p.desg.ens_precio)}</td>
+              <td style="color:var(--text);font-weight:600">${fmt(p.precio_total)}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr>
+            <td>TOTALES</td>
+            <td>${fmt(tot('cnc_precio'))}</td><td>${fmt(tot('pl_precio'))}</td>
+            <td>${fmt(tot('mg_precio'))}</td><td>${fmt(tot('pt_precio'))}</td>
+            <td>${fmt(tot('accs_precio'))}</td><td>${fmt(tot('ens_precio'))}</td>
+            <td>${fmt(raw)}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB COSTOS EMPRESA -->
+  <div id="tab-costos" class="tab-content">
+    <div class="cost-summary-grid">
+      <div class="cost-sum-card">
+        <div class="cs-label">Costo Total Empresa</div>
+        <div class="cs-val" style="color:var(--accent2)">${fmt(gran_costo)}</div>
+        <div class="cs-sub">${fmtPct(gran_costo/precio_venta*100)} del precio venta</div>
+        <div class="cs-bar"><div class="cs-bar-fill" style="width:${gran_costo/precio_venta*100}%;background:var(--accent2)"></div></div>
+      </div>
+      <div class="cost-sum-card">
+        <div class="cs-label">Ganancia Total</div>
+        <div class="cs-val" style="color:var(--success)">${fmt(margen_total)}</div>
+        <div class="cs-sub">${fmtPct(pct_total)} del precio venta · ${fmtPct(margen_total/gran_costo*100)} sobre costo</div>
+        <div class="cs-bar"><div class="cs-bar-fill" style="width:${pct_total}%;background:var(--success)"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="dot" style="background:var(--accent2)"></span>Costo Empresa por Pieza</div>
+      <div class="pieces-wrap">
+        <table>
+          <thead><tr>
+            <th>Pieza</th><th>CNC+PL</th><th>Plegado</th><th>MIG</th>
+            <th>Pintura</th><th>Accesorios</th><th>Ensamblaje</th>
+            <th>Costo Total</th><th>Ganancia</th><th>%</th>
+          </tr></thead>
+          <tbody>
+            ${piezas.map(p=>`
+            <tr>
+              <td><div class="piece-name">${p.nom}<span class="badge">${p.cant}x</span></div>
+                  <div class="piece-dim">${p.dA} × ${p.dB} mm</div></td>
+              <td>${fmt(p.desg.cnc_costo)}</td>
+              <td>${fmt(p.desg.pl_costo)}</td>
+              <td>${fmt(p.desg.mg_costo)}</td>
+              <td>${fmt(p.desg.pt_costo)}</td>
+              <td>${fmt(p.desg.accs_costo)}</td>
+              <td>${fmt(p.desg.ens_costo)}</td>
+              <td style="color:var(--accent2);font-weight:600">${fmt(p.costo_total)}</td>
+              <td style="color:var(--success)">${fmt(p.margen)}</td>
+              <td><span class="pct-pill ${pctClass(p.pct_margen)}">${fmtPct(p.pct_margen)}</span></td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr>
+            <td>TOTALES</td>
+            <td>${fmt(tot('cnc_costo'))}</td><td>${fmt(tot('pl_costo'))}</td>
+            <td>${fmt(tot('mg_costo'))}</td><td>${fmt(tot('pt_costo'))}</td>
+            <td>${fmt(tot('accs_costo'))}</td><td>${fmt(tot('ens_costo'))}</td>
+            <td>${fmt(gran_costo)}</td>
+            <td style="color:var(--success)">${fmt(margen_total)}</td>
+            <td><span class="pct-pill ${pctClass(pct_total)}">${fmtPct(pct_total)}</span></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="disclaimer">
+      <strong>Estructura de márgenes:</strong> Los <em>insumos</em> (plancha, goma, pernos, bisagras, cerraduras) 
+      llevan factor de precio 1.403 → margen <strong>28.7%</strong> sobre precio venta (40.3% sobre costo).
+      Los <em>procesos industriales</em> (CNC, plegado, MIG, pintura, ensamblaje) llevan factor APU 1.955 
+      (admin 15% + utilidad 70%) → margen <strong>48.8%</strong> sobre precio venta (95.5% sobre costo).
+    </div>
+  </div>`;
+
+  document.getElementById('results').innerHTML=html;
+}
+
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['resumen','margen','piezas','costos'];
+    t.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>{
+    c.classList.toggle('active',c.id==='tab-'+id);
+  });
+}
+
+window.onload=()=>calcular();
+</script>
+</body>
+</html>
