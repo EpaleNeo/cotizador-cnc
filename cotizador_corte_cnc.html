@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador de corte CNC — Diseñados CNC</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/tabler-icons.min.css">
+<style>
+:root{
+  --bg-page:#F4F3F0;
+  --bg-card:#FFFFFF;
+  --bg-secondary:#F1EFE8;
+  --text-primary:#1A1816;
+  --text-secondary:#5F5E5A;
+  --text-tertiary:#888780;
+  --border:#E2E0D9;
+  --border-strong:#C9C7BE;
+  --accent:#0F6E56;
+  --danger:#A32D2D;
+  --danger-bg:#FCEBEB;
+  --warning:#854F0B;
+  --warning-bg:#FAEEDA;
+  --radius-md:8px;
+  --radius-lg:12px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg-page);
+  color:var(--text-primary);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.5;
+}
+.wrap{max-width:980px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+header{margin-bottom:1.75rem;}
+header h1{font-size:22px;font-weight:600;margin:0 0 4px;}
+header p{font-size:14px;color:var(--text-secondary);margin:0;}
+.card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:1.25rem 1.5rem;
+  margin-bottom:1.25rem;
+}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:1.25rem;}
+.metric{background:var(--bg-secondary);border-radius:var(--radius-md);padding:1rem;}
+.metric p.label{font-size:13px;color:var(--text-secondary);margin:0 0 4px;}
+.metric p.value{font-size:22px;font-weight:600;margin:0;}
+h2.section-title{font-size:15px;font-weight:600;margin:0 0 12px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:6px 4px;color:var(--text-secondary);font-weight:600;border-bottom:1px solid var(--border);}
+td{padding:5px 4px;border-bottom:1px solid var(--border);}
+input,select{
+  width:100%;
+  font-family:inherit;
+  font-size:13px;
+  padding:6px 8px;
+  border:1px solid var(--border-strong);
+  border-radius:6px;
+  background:var(--bg-card);
+  color:var(--text-primary);
+}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+input[type=range]{padding:0;}
+button{
+  font-family:inherit;
+  font-size:13px;
+  padding:7px 12px;
+  border:1px solid var(--border-strong);
+  border-radius:6px;
+  background:var(--bg-card);
+  color:var(--text-primary);
+  cursor:pointer;
+}
+button:hover{background:var(--bg-secondary);}
+button.icon-btn{padding:6px 8px;}
+.table-scroll{overflow-x:auto;}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin-bottom:10px;}
+.legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 12px;font-size:12px;}
+.legend .row{display:flex;align-items:center;gap:6px;}
+.legend .dot{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0;}
+.legend .name{color:var(--text-secondary);}
+.legend .val{margin-left:auto;font-weight:600;}
+.field label{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:3px;}
+.field{margin-bottom:0;}
+.params-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+details summary{font-size:14px;font-weight:600;cursor:pointer;list-style:none;}
+details summary::-webkit-details-marker{display:none;}
+details summary::before{content:"▸ ";display:inline-block;transition:transform .15s;}
+details[open] summary::before{content:"▾ ";}
+.subhead{font-size:13px;font-weight:600;margin:18px 0 8px;}
+.discount-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.discount-row label{font-size:13px;color:var(--text-secondary);min-width:150px;}
+.discount-row span{font-size:13px;font-weight:600;min-width:34px;text-align:right;}
+.discount-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px;}
+.discount-results p.l{font-size:12px;color:var(--text-secondary);margin:0 0 2px;}
+.discount-results p.v{font-size:16px;font-weight:600;margin:0;}
+.warning-box{font-size:12px;margin:10px 0 0;padding:8px 10px;border-radius:6px;display:none;}
+.mat-prices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.footer-note{font-size:12px;color:var(--text-tertiary);margin-top:2rem;text-align:center;}
+@media(max-width:640px){
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .params-grid{grid-template-columns:1fr;}
+  .mat-prices{grid-template-columns:1fr;}
+  .discount-results{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Cotizador de corte CNC láser</h1>
+  <p>Réplica del motor de cálculo de la planilla COSTOS — costo empresa desglosado y precio de venta.</p>
+</header>
+
+<div class="metrics">
+  <div class="metric"><p class="label">Costo empresa</p><p class="value" id="m-costo">$0</p></div>
+  <div class="metric"><p class="label">Precio de venta</p><p class="value" id="m-precio">$0</p></div>
+  <div class="metric"><p class="label">Ganancia</p><p class="value" id="m-ganancia">$0</p></div>
+  <div class="metric"><p class="label">Margen</p><p class="value" id="m-margen">0%</p></div>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Desglose del costo empresa</h2>
+  <div class="bar" id="breakdown-bar"></div>
+  <div class="legend" id="breakdown-legend"></div>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Piezas a cortar</h2>
+  <div class="table-scroll">
+    <table id="pieces-table" style="min-width:780px;">
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th>Material</th>
+          <th>Esp (mm)</th>
+          <th>Gas</th>
+          <th>T (seg)</th>
+          <th>Cant.</th>
+          <th>Dim A</th>
+          <th>Dim B</th>
+          <th style="text-align:right;">Precio línea</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="pieces-body"></tbody>
+    </table>
+  </div>
+  <button id="btn-add" style="margin-top:10px;"><i class="ti ti-plus" aria-hidden="true" style="margin-right:4px;"></i>Agregar pieza</button>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Simulador: ¿cuánto puedo bajar el precio?</h2>
+  <div class="discount-row">
+    <label>Descuento adicional</label>
+    <input type="range" min="0" max="50" step="1" value="0" id="discount" style="flex:1;">
+    <span id="discount-out">0%</span>
+  </div>
+  <div class="discount-results">
+    <div><p class="l">Precio con descuento</p><p class="v" id="d-precio">$0</p></div>
+    <div><p class="l">Ganancia resultante</p><p class="v" id="d-ganancia">$0</p></div>
+    <div><p class="l">Margen resultante</p><p class="v" id="d-margen">0%</p></div>
+  </div>
+  <p class="warning-box" id="d-warning"></p>
+</div>
+
+<details class="card">
+  <summary>Parámetros generales (tarifas, mano de obra, márgenes)</summary>
+  <div class="params-grid" style="margin-top:14px;">
+    <div class="field"><label>Valor dólar del día (CLP)</label><input type="number" id="g-dollar" value="1000"></div>
+    <div class="field"><label>Administración (%) por pieza</label><input type="number" id="g-admin" value="35"></div>
+    <div class="field"><label>Utilidad (%) por pieza</label><input type="number" id="g-util" value="50"></div>
+    <div class="field"><label>Programación y ajustes fija (min/trabajo)</label><input type="number" id="g-prog" value="15"></div>
+  </div>
+
+  <p class="subhead">Mano de obra</p>
+  <div class="table-scroll">
+  <table style="min-width:480px;">
+    <thead><tr><th>Cargo</th><th>Cant. asignada</th><th>Salario mensual</th></tr></thead>
+    <tbody>
+      <tr><td>Supervisor</td><td><input type="number" step="0.05" id="l-sup-cant" value="0.25"></td><td><input type="number" id="l-sup-sal" value="800000"></td></tr>
+      <tr><td>Operador CNC</td><td><input type="number" step="0.05" id="l-op-cant" value="1"></td><td><input type="number" id="l-op-sal" value="600000"></td></tr>
+      <tr><td>Ayudante</td><td><input type="number" step="0.05" id="l-ay-cant" value="0"></td><td><input type="number" id="l-ay-sal" value="550000"></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-secondary);margin:8px 0 0;">Tarifa horaria combinada: <span id="l-i11">$0</span>/hora</p>
+
+  <p class="subhead">Precio de materiales ($/kg)</p>
+  <div class="mat-prices" id="mat-prices"></div>
+</details>
+
+<p class="footer-note">Motor de cálculo basado en CORTE_CNC_V1 (pestaña COSTOS) — Diseñados CNC.</p>
+</div>
+
+<script>
+(function(){
+var materials=[
+  {id:0,name:"Sin material",price:140,peso:8},
+  {id:1,name:"SS 316 (Despunte)",price:8100,peso:8},
+  {id:2,name:"SS 316 (Plancha)",price:6400,peso:8},
+  {id:3,name:"SS 304 (Despunte)",price:5900,peso:8},
+  {id:4,name:"SS 304 (Plancha)",price:5700,peso:8},
+  {id:5,name:"Aluminio",price:6495.62,peso:2.71},
+  {id:6,name:"Laminado en caliente",price:800,peso:8},
+  {id:7,name:"Electrogalvanizado",price:1000,peso:8},
+  {id:8,name:"Laminado en frío",price:900,peso:8},
+  {id:9,name:"Precio especial",price:900,peso:8}
+];
+var gases=[
+  {id:1,name:"Aire comprimido",tarifaUSD:3.12,gasCLP:0},
+  {id:2,name:"Oxígeno",tarifaUSD:3.21,gasCLP:32000},
+  {id:3,name:"Nitrógeno",tarifaUSD:5.37,gasCLP:92000}
+];
+var thicknesses=[0.6,0.8,1,1.2,1.5,1.9,2,2.5,3,4,5,6,8,10,12];
+var classThresh={0.6:14.4,0.8:19.2,1:24,1.2:28.8,1.5:36,1.9:45.6,2:48,2.5:60,3:72,4:96,5:120,6:144,8:192,10:240,12:288};
+var classMin={0.6:10,0.8:10,1:10,1.2:10,1.5:10,1.9:10,2:10,2.5:15,3:15,4:15,5:20,6:20,8:20,10:20,12:20};
+
+var pieces=[{id:0,desc:"Pieza 1",mat:8,esp:1.5,gas:1,seg:180,cant:1,dimA:2000,dimB:1000}];
+var nextId=1;
+
+var equipoUSD=86000, deprec=0.002, divisorUso=9;
+var colors=["#534AB7","#0F6E56","#993C1D","#185FA5","#854F0B","#993556"];
+var labels=["Material","Mano de obra","Equipo","Electricidad","Gas","Consumibles"];
+
+function fmt(n){return "$"+Math.round(n).toLocaleString("es-CL");}
+function pct(n){return (Math.round(n*10)/10)+"%";}
+
+function laborHourly(){
+  var fcas=1.9801, horasMes=194.85;
+  var sup=parseFloat(document.getElementById("l-sup-cant").value)*fcas*parseFloat(document.getElementById("l-sup-sal").value)/horasMes;
+  var op=parseFloat(document.getElementById("l-op-cant").value)*fcas*parseFloat(document.getElementById("l-op-sal").value)/horasMes;
+  var ay=parseFloat(document.getElementById("l-ay-cant").value)*fcas*parseFloat(document.getElementById("l-ay-sal").value)/horasMes;
+  return sup+op+ay;
+}
+
+function buildMatPriceInputs(){
+  var c=document.getElementById("mat-prices");
+  c.innerHTML="";
+  materials.forEach(function(m){
+    var d=document.createElement("div");
+    d.className="field";
+    d.innerHTML='<label>'+m.name+'</label><input type="number" step="0.01" id="mp-'+m.id+'" value="'+m.price+'">';
+    c.appendChild(d);
+  });
+}
+
+function getMatPrice(id){
+  var el=document.getElementById("mp-"+id);
+  return el?parseFloat(el.value)||0:0;
+}
+
+function renderPieces(){
+  var body=document.getElementById("pieces-body");
+  body.innerHTML="";
+  pieces.forEach(function(p){
+    var tr=document.createElement("tr");
+    var matOpts=materials.map(function(m){return '<option value="'+m.id+'"'+(m.id===p.mat?" selected":"")+'>'+m.name+'</option>';}).join("");
+    var espOpts=thicknesses.map(function(t){return '<option value="'+t+'"'+(t===p.esp?" selected":"")+'>'+t+'</option>';}).join("");
+    var gasOpts=gases.map(function(g){return '<option value="'+g.id+'"'+(g.id===p.gas?" selected":"")+'>'+g.name+'</option>';}).join("");
+    tr.innerHTML=
+      '<td><input data-id="'+p.id+'" data-field="desc" value="'+p.desc+'" style="width:100px;"></td>'+
+      '<td><select data-id="'+p.id+'" data-field="mat" style="width:140px;">'+matOpts+'</select></td>'+
+      '<td><select data-id="'+p.id+'" data-field="esp" style="width:70px;">'+espOpts+'</select></td>'+
+      '<td><select data-id="'+p.id+'" data-field="gas" style="width:120px;">'+gasOpts+'</select></td>'+
+      '<td><input type="number" data-id="'+p.id+'" data-field="seg" value="'+p.seg+'" style="width:70px;"></td>'+
+      '<td><input type="number" data-id="'+p.id+'" data-field="cant" value="'+p.cant+'" style="width:60px;"></td>'+
+      '<td><input type="number" data-id="'+p.id+'" data-field="dimA" value="'+p.dimA+'" style="width:80px;"></td>'+
+      '<td><input type="number" data-id="'+p.id+'" data-field="dimB" value="'+p.dimB+'" style="width:80px;"></td>'+
+      '<td style="text-align:right;" id="line-'+p.id+'">$0</td>'+
+      '<td><button class="icon-btn" data-rm="'+p.id+'" aria-label="Eliminar pieza"><i class="ti ti-trash" aria-hidden="true"></i></button></td>';
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("input,select").forEach(function(el){
+    el.addEventListener("input",function(){
+      var id=parseFloat(this.getAttribute("data-id"));
+      var field=this.getAttribute("data-field");
+      var piece=pieces.find(function(x){return x.id===id;});
+      if(!piece)return;
+      if(field==="desc")piece[field]=this.value;
+      else piece[field]=parseFloat(this.value);
+      calcAll();
+    });
+  });
+  body.querySelectorAll("[data-rm]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var id=parseFloat(this.getAttribute("data-rm"));
+      pieces=pieces.filter(function(x){return x.id!==id;});
+      renderPieces();
+      calcAll();
+    });
+  });
+}
+
+function calcAll(){
+  var dollar=parseFloat(document.getElementById("g-dollar").value)||0;
+  var adminPct=parseFloat(document.getElementById("g-admin").value)||0;
+  var utilPct=parseFloat(document.getElementById("g-util").value)||0;
+  var progMin=parseFloat(document.getElementById("g-prog").value)||0;
+  var I11=laborHourly();
+  document.getElementById("l-i11").textContent=fmt(I11);
+  var costoHoraEquipo=equipoUSD*dollar*deprec/divisorUso;
+  var marginFactor=(1+adminPct/100)*(1+utilPct/100);
+
+  var calc=pieces.map(function(p){
+    var mat=materials.find(function(m){return m.id===p.mat;})||materials[0];
+    var matPrice=getMatPrice(p.mat);
+    var pesoEsp=mat.peso;
+    var gas=gases.find(function(g){return g.id===p.gas;})||gases[0];
+    var merma=Math.max(p.esp,3);
+    var K=(p.dimA+merma)*(p.dimB+merma)*p.esp*pesoEsp/1e6;
+    var L=K*p.cant;
+    var Mmin=p.seg/60;
+    var Hmin=p.seg*p.cant/60;
+    var Jline=gas.tarifaUSD*Hmin*dollar/60;
+    var Lline=gas.gasCLP*Hmin/60;
+    return {p:p,K:K,L:L,Mmin:Mmin,Hmin:Hmin,Jline:Jline,Lline:Lline};
+  });
+
+  var T_total=calc.reduce(function(s,c){return s+c.Hmin;},0);
+  var P_total=calc.reduce(function(s,c){return s+c.L;},0);
+
+  var Q34=0;
+  thicknesses.forEach(function(t){
+    var sumW=calc.reduce(function(s,c){return s+(Math.abs(c.p.esp-t)<1e-6?c.L:0);},0);
+    if(sumW>0){
+      var loads=Math.ceil(sumW/classThresh[t]);
+      Q34+=loads*classMin[t];
+    }
+  });
+
+  var totals={mat:0,labor:0,equipo:0,elec:0,gas:0,consum:0};
+  var precioVenta=0;
+
+  calc.forEach(function(c){
+    var S=T_total>0?(progMin/T_total)*c.Mmin:0;
+    var U=P_total>0?(Q34/P_total)*c.K:0;
+    var X=U+S+c.Mmin;
+    var Z=c.p.cant>0?c.Jline/c.p.cant:0;
+    var AB=c.p.cant>0?c.Lline/c.p.cant:0;
+    var AD=1254*X/60;
+    var matPrice=getMatPrice(c.p.mat);
+    var AH=matPrice*c.K;
+    var AJ=(X/60)*I11;
+    var AL=X*costoHoraEquipo/60;
+    var AN=AL+AJ+AH+AD+AB+Z;
+    var O=AN*marginFactor;
+    var P=O*c.p.cant;
+
+    totals.mat+=AH*c.p.cant;
+    totals.labor+=AJ*c.p.cant;
+    totals.equipo+=AL*c.p.cant;
+    totals.elec+=AD*c.p.cant;
+    totals.gas+=AB*c.p.cant;
+    totals.consum+=Z*c.p.cant;
+    precioVenta+=P;
+
+    var lineEl=document.getElementById("line-"+c.p.id);
+    if(lineEl)lineEl.textContent=fmt(P);
+  });
+
+  var costoEmpresa=totals.mat+totals.labor+totals.equipo+totals.elec+totals.gas+totals.consum;
+  var ganancia=precioVenta-costoEmpresa;
+  var margen=precioVenta>0?ganancia/precioVenta*100:0;
+
+  document.getElementById("m-costo").textContent=fmt(costoEmpresa);
+  document.getElementById("m-precio").textContent=fmt(precioVenta);
+  document.getElementById("m-ganancia").textContent=fmt(ganancia);
+  document.getElementById("m-margen").textContent=pct(margen);
+
+  var bar=document.getElementById("breakdown-bar");
+  var legend=document.getElementById("breakdown-legend");
+  bar.innerHTML="";legend.innerHTML="";
+  var vals=[totals.mat,totals.labor,totals.equipo,totals.elec,totals.gas,totals.consum];
+  vals.forEach(function(v,i){
+    var w=costoEmpresa>0?(v/costoEmpresa*100):0;
+    var seg=document.createElement("div");
+    seg.style.width=w+"%";
+    seg.style.background=colors[i];
+    bar.appendChild(seg);
+    var leg=document.createElement("div");
+    leg.className="row";
+    leg.innerHTML='<span class="dot" style="background:'+colors[i]+';"></span><span class="name">'+labels[i]+'</span><span class="val">'+fmt(v)+'</span>';
+    legend.appendChild(leg);
+  });
+
+  var discPct=parseFloat(document.getElementById("discount").value)||0;
+  var precioDesc=precioVenta*(1-discPct/100);
+  var gananciaDesc=precioDesc-costoEmpresa;
+  var margenDesc=precioDesc>0?gananciaDesc/precioDesc*100:0;
+  document.getElementById("d-precio").textContent=fmt(precioDesc);
+  document.getElementById("d-ganancia").textContent=fmt(gananciaDesc);
+  document.getElementById("d-margen").textContent=pct(margenDesc);
+  var warn=document.getElementById("d-warning");
+  if(gananciaDesc<0){
+    warn.style.display="block";
+    warn.style.background="var(--danger-bg)";
+    warn.style.color="var(--danger)";
+    warn.textContent="Este precio queda bajo el costo empresa: estarías perdiendo dinero.";
+  }else if(margenDesc<15){
+    warn.style.display="block";
+    warn.style.background="var(--warning-bg)";
+    warn.style.color="var(--warning)";
+    warn.textContent="Margen bajo (menos del 15%). Revisa si conviene para este cliente.";
+  }else{
+    warn.style.display="none";
+  }
+}
+
+buildMatPriceInputs();
+renderPieces();
+document.getElementById("btn-add").addEventListener("click",function(){
+  nextId++;
+  pieces.push({id:nextId,desc:"Pieza "+(nextId+1),mat:8,esp:1.5,gas:1,seg:60,cant:1,dimA:500,dimB:500});
+  renderPieces();
+  calcAll();
+});
+document.getElementById("discount").addEventListener("input",function(){
+  document.getElementById("discount-out").textContent=this.value+"%";
+  calcAll();
+});
+["g-dollar","g-admin","g-util","g-prog","l-sup-cant","l-sup-sal","l-op-cant","l-op-sal","l-ay-cant","l-ay-sal"].forEach(function(id){
+  document.getElementById(id).addEventListener("input",calcAll);
+});
+materials.forEach(function(m){
+  document.getElementById("mp-"+m.id).addEventListener("input",calcAll);
+});
+calcAll();
+})();
+</script>
+</body>
+</html>

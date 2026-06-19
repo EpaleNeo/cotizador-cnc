@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Costos — Caja Chilectra Estándar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14181c;
+    --bg-grid:#171c21;
+    --panel:#1d2329;
+    --panel-2:#242b32;
+    --panel-3:#2a323a;
+    --border:#343e47;
+    --border-soft:#2a323a;
+    --text:#e9edf0;
+    --text-dim:#9aa7b0;
+    --text-faint:#6b7780;
+    --steel:#6f8aa3;
+    --steel-light:#a9bdcc;
+    --plate:#eef0ec;
+    --safety:#e2672b;
+    --safety-light:#f08c5b;
+    --safety-dim:#3a2a20;
+    --good:#5fb27c;
+    --good-dim:#1d2b22;
+    --warn:#dba94a;
+    --warn-dim:#2e2719;
+    --bad:#d9685a;
+    --bad-dim:#311f1d;
+    --radius:10px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    background-image:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+    background-size:28px 28px;
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:14px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--safety);color:#fff;}
+
+  a{color:var(--steel-light);}
+
+  .wrap{
+    max-width:1280px;
+    margin:0 auto;
+    padding:22px 22px 60px;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    padding-bottom:18px;
+    margin-bottom:22px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand-eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--safety-light);
+    margin:0 0 6px;
+  }
+  .brand-title{
+    font-family:var(--font-display);
+    font-size:28px;
+    font-weight:600;
+    margin:0;
+    color:var(--text);
+    letter-spacing:-.01em;
+  }
+  .brand-sub{
+    margin:6px 0 0;
+    color:var(--text-dim);
+    font-size:13px;
+    max-width:560px;
+  }
+  .badges{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:7px 12px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:500;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex:none;}
+
+  /* ---------- Layout ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+  }
+
+  .stack{display:flex;flex-direction:column;gap:18px;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px;
+  }
+  .card-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .card-title{
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:600;
+    margin:0;
+    color:var(--text);
+  }
+  .card-title .num{
+    color:var(--safety-light);
+    font-family:var(--font-mono);
+    font-size:12px;
+    margin-right:8px;
+  }
+  .card-note{
+    font-size:11.5px;
+    color:var(--text-faint);
+  }
+
+  /* ---------- Dimension controls ---------- */
+  .dim-row{margin-bottom:16px;}
+  .dim-row:last-child{margin-bottom:0;}
+  .dim-label-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:7px;
+  }
+  .dim-label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .dim-label .letter{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px;height:18px;
+    border-radius:4px;
+    background:var(--panel-3);
+    color:var(--steel-light);
+    font-family:var(--font-mono);
+    font-size:11px;
+    margin-right:7px;
+  }
+  .dim-value-input{
+    width:74px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:6px;
+    color:var(--text);
+    font-family:var(--font-mono);
+    font-size:13px;
+    text-align:right;
+    padding:4px 8px;
+  }
+  .dim-value-input:focus{outline:1px solid var(--steel-light);}
+  .unit-suffix{color:var(--text-faint);font-size:11.5px;margin-left:4px;}
+
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;
+    height:4px;
+    border-radius:3px;
+    background:var(--panel-3);
+    outline:none;
+    margin:2px 0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;
+    border-radius:4px;
+    background:var(--steel-light);
+    border:2px solid var(--bg);
+    box-shadow:0 0 0 1px var(--steel);
+    cursor:pointer;
+    margin-top:-1px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;
+    border-radius:4px;
+    background:var(--steel-light);
+    border:2px solid var(--bg);
+    box-shadow:0 0 0 1px var(--steel);
+    cursor:pointer;
+  }
+  input[type=range].accent-safety::-webkit-slider-thumb{background:var(--safety-light);box-shadow:0 0 0 1px var(--safety);}
+  input[type=range].accent-safety::-moz-range-thumb{background:var(--safety-light);box-shadow:0 0 0 1px var(--safety);}
+  .range-minmax{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--text-faint);
+    margin-top:3px;
+  }
+
+  /* ---------- Status chips ---------- */
+  .chips{display:flex;flex-direction:column;gap:8px;}
+  .chip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:8px;
+    background:var(--panel-2);
+    border:1px solid var(--border-soft);
+  }
+  .chip-label{font-size:12px;color:var(--text-dim);}
+  .chip-value{
+    font-family:var(--font-mono);
+    font-size:12px;
+    font-weight:600;
+    padding:2px 8px;
+    border-radius:5px;
+  }
+  .chip-value.ok{color:var(--good);background:var(--good-dim);}
+  .chip-value.warn{color:var(--warn);background:var(--warn-dim);}
+  .chip-value.bad{color:var(--bad);background:var(--bad-dim);}
+
+  /* ---------- Blueprint ---------- */
+  .blueprint-svg{width:100%;display:block;}
+  .blueprint-caption{
+    margin-top:8px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--text-faint);
+    text-align:center;
+  }
+
+  /* ---------- Breakdown table ---------- */
+  table.breakdown{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+  }
+  table.breakdown th{
+    text-align:right;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--text-faint);
+    font-weight:600;
+    padding:0 8px 8px;
+    border-bottom:1px solid var(--border);
+  }
+  table.breakdown th:first-child{text-align:left;}
+  table.breakdown td{
+    padding:9px 8px;
+    border-bottom:1px solid var(--border-soft);
+    text-align:right;
+    font-family:var(--font-mono);
+    color:var(--text);
+    white-space:nowrap;
+  }
+  table.breakdown td:first-child{
+    text-align:left;
+    font-family:var(--font-body);
+    color:var(--text);
+    font-weight:500;
+  }
+  table.breakdown td .qty-unit{color:var(--text-faint);font-size:11px;margin-left:3px;}
+  table.breakdown tr:last-child td{border-bottom:none;}
+  table.breakdown tfoot td{
+    border-top:2px solid var(--border);
+    border-bottom:none;
+    font-weight:700;
+    padding-top:12px;
+    font-size:13.5px;
+  }
+  table.breakdown tfoot tr:first-child td{padding-top:14px;}
+  .bar-cell{padding-top:4px !important;}
+  .mini-bar{
+    height:5px;
+    border-radius:3px;
+    background:var(--panel-3);
+    overflow:hidden;
+  }
+  .mini-bar > div{height:100%;background:var(--steel-light);}
+
+  .composition{margin-top:16px;}
+  .composition-bar{
+    display:flex;
+    height:22px;
+    border-radius:6px;
+    overflow:hidden;
+    border:1px solid var(--border);
+  }
+  .composition-bar span{height:100%;}
+  .composition-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 16px;
+    margin-top:10px;
+    font-size:11px;
+    color:var(--text-dim);
+  }
+  .composition-legend .item{display:flex;align-items:center;gap:6px;}
+  .composition-legend .sw{width:9px;height:9px;border-radius:2px;flex:none;}
+
+  /* ---------- Pricing ---------- */
+  .pricing-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+  @media (max-width:640px){.pricing-grid{grid-template-columns:1fr;}}
+
+  .big-number-row{
+    display:flex;
+    gap:22px;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .big-number{flex:1;min-width:140px;}
+  .big-number .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--text-faint);
+    margin-bottom:4px;
+  }
+  .big-number .value{
+    font-family:var(--font-mono);
+    font-size:25px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .big-number .value.accent{color:var(--safety-light);}
+  .big-number .sub{font-size:11px;color:var(--text-faint);margin-top:2px;}
+
+  .slider-block{margin-bottom:16px;}
+  .slider-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+  }
+  .slider-head label{font-size:12.5px;color:var(--text-dim);font-weight:600;}
+  .slider-readout{font-family:var(--font-mono);font-size:15px;font-weight:600;color:var(--text);}
+
+  /* ---------- Competition panel ---------- */
+  .competition-card{
+    border:1px solid var(--safety-dim);
+    background:linear-gradient(180deg, rgba(226,103,43,0.06), rgba(226,103,43,0));
+    background-color:var(--panel);
+    position:relative;
+  }
+  .competition-card::before{
+    content:"";
+    position:absolute;
+    top:0;left:0;
+    width:4px;height:100%;
+    background:var(--safety);
+    border-radius:var(--radius) 0 0 var(--radius);
+  }
+  .competition-card .card-title{color:var(--safety-light);}
+  .field-row{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  .field{flex:1;min-width:180px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .field-input-wrap{
+    display:flex;
+    align-items:center;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:7px;
+    padding:0 10px;
+  }
+  .field-input-wrap span{color:var(--text-faint);font-size:13px;}
+  .field-input-wrap input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--text);
+    font-family:var(--font-mono);
+    font-size:14px;
+    padding:9px 6px;
+    text-align:right;
+    width:100%;
+    min-width:0;
+  }
+  .verdict{
+    border-radius:8px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.55;
+    border:1px solid var(--border-soft);
+    background:var(--panel-2);
+  }
+  .verdict.ok{border-color:rgba(95,178,124,.35);background:var(--good-dim);color:#cfe9d8;}
+  .verdict.bad{border-color:rgba(217,104,90,.35);background:var(--bad-dim);color:#f1d3cd;}
+  .verdict strong{color:inherit;}
+  .verdict-stats{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-top:12px;
+    margin-bottom:14px;
+  }
+  .verdict-stats .vs-item .vs-label{font-size:11px;color:var(--text-faint);}
+  .verdict-stats .vs-item .vs-value{font-family:var(--font-mono);font-weight:600;font-size:16px;color:var(--text);}
+
+  button.btn{
+    appearance:none;
+    border:1px solid var(--safety);
+    background:var(--safety);
+    color:#fff;
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:12.5px;
+    padding:9px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:filter .15s ease;
+  }
+  button.btn:hover{filter:brightness(1.08);}
+  button.btn:active{filter:brightness(.95);}
+  button.btn.ghost{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+  }
+  button.btn.ghost:hover{border-color:var(--steel-light);color:var(--text);}
+
+  .empty-hint{
+    color:var(--text-faint);
+    font-size:12.5px;
+    padding:6px 2px;
+  }
+
+  /* ---------- Advanced ---------- */
+  details.advanced{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:0;
+  }
+  details.advanced > summary{
+    list-style:none;
+    cursor:pointer;
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:14px;
+    color:var(--text);
+  }
+  details.advanced > summary::-webkit-details-marker{display:none;}
+  details.advanced > summary .arrow{
+    font-family:var(--font-mono);
+    color:var(--text-faint);
+    font-size:12px;
+    transition:transform .15s ease;
+  }
+  details.advanced[open] > summary .arrow{transform:rotate(90deg);}
+  .advanced-body{
+    padding:4px 18px 20px;
+    border-top:1px solid var(--border-soft);
+  }
+  .adv-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-top:16px;
+  }
+  @media (max-width:760px){.adv-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:480px){.adv-grid{grid-template-columns:1fr;}}
+  .adv-field label{
+    display:block;
+    font-size:11.5px;
+    color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .adv-field .field-input-wrap input{font-size:13px;padding:7px 6px;}
+  .adv-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px solid var(--border-soft);
+  }
+  .adv-foot .note{font-size:11.5px;color:var(--text-faint);max-width:480px;}
+
+  footer.page-footer{
+    margin-top:26px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    font-size:11.5px;
+    color:var(--text-faint);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <p class="brand-eyebrow">Pardo · Costos CNC</p>
+      <h1 class="brand-title">Calculadora — Caja Chilectra Estándar</h1>
+      <p class="brand-sub">Simulador de costo y margen según la planilla "COSTOS CAJAS CHILECTRA". Ajusta Largo, Ancho y Profundidad para ver cómo cambia el costo, y usa el margen para evaluar frente a la competencia.</p>
+    </div>
+    <div class="badges">
+      <span class="badge"><span class="dot"></span>Espesor 2 mm — fijo por normativa</span>
+      <span class="badge"><span class="dot"></span>Pintura electrostática — siempre incluida</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- ============ SIDEBAR ============ -->
+    <div class="stack">
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">01</span>Dimensiones</h2>
+        </div>
+
+        <div class="dim-row">
+          <div class="dim-label-row">
+            <span class="dim-label"><span class="letter">A</span>Largo</span>
+            <span><input type="number" id="num-A" class="dim-value-input" value="1000"><span class="unit-suffix">mm</span></span>
+          </div>
+          <input type="range" id="rng-A" min="200" max="3000" step="10" value="1000">
+          <div class="range-minmax"><span>200</span><span>3000</span></div>
+        </div>
+
+        <div class="dim-row">
+          <div class="dim-label-row">
+            <span class="dim-label"><span class="letter">B</span>Ancho</span>
+            <span><input type="number" id="num-B" class="dim-value-input" value="800"><span class="unit-suffix">mm</span></span>
+          </div>
+          <input type="range" id="rng-B" min="200" max="2000" step="10" value="800">
+          <div class="range-minmax"><span>200</span><span>2000</span></div>
+        </div>
+
+        <div class="dim-row">
+          <div class="dim-label-row">
+            <span class="dim-label"><span class="letter">C</span>Profundidad</span>
+            <span><input type="number" id="num-C" class="dim-value-input" value="400"><span class="unit-suffix">mm</span></span>
+          </div>
+          <input type="range" id="rng-C" min="100" max="1200" step="10" value="400">
+          <div class="range-minmax"><span>100</span><span>1200</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">02</span>Plano de referencia</h2>
+        </div>
+        <div id="blueprint-holder"></div>
+        <p class="blueprint-caption" id="blueprint-caption">1000 × 800 × 400 mm · e=2 mm</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">03</span>Estado de fabricación</h2>
+        </div>
+        <div class="chips">
+          <div class="chip">
+            <span class="chip-label">Cuerpo</span>
+            <span class="chip-value ok" id="chip-cuerpo">EN 1 PIEZA</span>
+          </div>
+          <div class="chip">
+            <span class="chip-label">Cumple espesor mínimo normado</span>
+            <span class="chip-value ok" id="chip-norma">SÍ</span>
+          </div>
+          <div class="chip">
+            <span class="chip-label">Tiempo de plegado</span>
+            <span class="chip-value ok" id="chip-plegado" style="color:var(--steel-light);background:var(--panel-3);">21 min</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ MAIN ============ -->
+    <div class="stack">
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">04</span>Desglose de costos</h2>
+          <span class="card-note">Costo directo → + Adm. → + Utilidad = Precio de venta</span>
+        </div>
+
+        <table class="breakdown">
+          <thead>
+            <tr>
+              <th>Partida</th>
+              <th>Cantidad</th>
+              <th>Costo unit.</th>
+              <th>Costo directo</th>
+              <th>Precio venta</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown-body"></tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td></td>
+              <td></td>
+              <td id="tot-direct">$0</td>
+              <td id="tot-sale">$0</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="composition">
+          <div class="composition-bar" id="composition-bar"></div>
+          <div class="composition-legend" id="composition-legend"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">05</span>Margen y precio</h2>
+        </div>
+
+        <div class="big-number-row">
+          <div class="big-number">
+            <div class="label">Costo directo total</div>
+            <div class="value" id="big-direct">$0</div>
+          </div>
+          <div class="big-number">
+            <div class="label">Precio de venta</div>
+            <div class="value accent" id="big-sale">$0</div>
+            <div class="sub" id="big-sale-sub">multiplicador ×0,00</div>
+          </div>
+          <div class="big-number">
+            <div class="label">Utilidad bruta ($)</div>
+            <div class="value" id="big-profit">$0</div>
+          </div>
+        </div>
+
+        <div class="pricing-grid">
+          <div class="slider-block">
+            <div class="slider-head">
+              <label for="rng-util">Margen de utilidad</label>
+              <span class="slider-readout"><span id="readout-util">70</span>%</span>
+            </div>
+            <input type="range" id="rng-util" class="accent-safety" min="0" max="150" step="1" value="70">
+            <div class="range-minmax"><span>0%</span><span>150%</span></div>
+          </div>
+          <div class="slider-block">
+            <div class="slider-head">
+              <label for="rng-admin">Margen administrativo</label>
+              <span class="slider-readout"><span id="readout-admin">15</span>%</span>
+            </div>
+            <input type="range" id="rng-admin" min="0" max="50" step="0.5" value="15">
+            <div class="range-minmax"><span>0%</span><span>50%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card competition-card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">06</span>Comparar con la competencia</h2>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-competidor">Precio de la competencia</label>
+            <div class="field-input-wrap">
+              <span>$</span>
+              <input type="number" id="inp-competidor" placeholder="Ej: 150000">
+            </div>
+          </div>
+          <div class="field">
+            <label for="inp-margen-min">Margen mínimo aceptable</label>
+            <div class="field-input-wrap">
+              <input type="number" id="inp-margen-min" value="30">
+              <span>%</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="competencia-result">
+          <p class="empty-hint">Ingresa el precio de la competencia para ver si podemos igualarlo sin perder margen.</p>
+        </div>
+      </div>
+
+      <details class="advanced">
+        <summary>
+          <span>Parámetros avanzados — costos de insumos y procesos</span>
+          <span class="arrow">▸</span>
+        </summary>
+        <div class="advanced-body">
+          <p class="card-note" style="margin:0;">Valores tomados de la planilla de costos vigente. Edítalos si cambia algún precio de insumo o proceso.</p>
+          <div class="adv-grid">
+            <div class="adv-field">
+              <label for="adv-plancha">Plancha de acero (CLP / kg)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-plancha" value="700"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-fierro">Fierro 8 mm (CLP / tira de 6 m)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-fierro" value="3941"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-perno">Perno 3/8"x1" (CLP / juego)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-perno" value="145"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-laser">Corte láser CNC (CLP / mm)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-laser" value="1" step="0.05"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-plegado">Plegado (CLP / min)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-plegado" value="261.07" step="0.01"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-soldadura">Soldadura (CLP / ml)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-soldadura" value="3591.84" step="0.01"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-pintura">Pintura electrostática (CLP / m²)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-pintura" value="3800.78" step="0.01"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-ensamblado">Ensamblado (CLP / m²)</label>
+              <div class="field-input-wrap"><span>$</span><input type="number" id="adv-ensamblado" value="4139.89" step="0.01"></div>
+            </div>
+            <div class="adv-field">
+              <label for="adv-pliegue">Dim. pliegue de caja (mm)</label>
+              <div class="field-input-wrap"><input type="number" id="adv-pliegue" value="20"></div>
+            </div>
+          </div>
+          <div class="adv-foot">
+            <span class="note">El espesor (2 mm) no es editable: es un requisito normativo fijo para estas cajas.</span>
+            <button class="btn ghost" id="btn-reset">Restablecer valores de la planilla</button>
+          </div>
+        </div>
+      </details>
+
+      <footer class="page-footer">
+        <span>Modelo replicado desde "COSTOS_CAJAS_CHILECTRA_V_2 — Abril 2024", pestaña ESTANDAR.</span>
+        <span>Costo directo × (1+Adm.) × (1+Utilidad) = Precio de venta</span>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  // ---------------------------------------------------------------
+  // CALCULATION ENGINE — ported 1:1 from the ESTANDAR sheet formulas
+  // ---------------------------------------------------------------
+  const THICKNESS = 2; // mm, fixed by normativa
+
+  function calc(s){
+    const A = s.A, B = s.B, C = s.C, foldBox = s.foldBox;
+    const admin = s.admin/100, util = s.util/100;
+
+    const plateUnitPrice = s.pricePlancha;
+    const laserUnitPrice = s.priceLaser;
+
+    const boltsA = A<=900?4:(A<=1600?6:(A<=2300?8:10));
+    const boltsB = B<=900?0:(B<=1400?2:(B<=2100?4:6));
+    const fierroCount = A<=1200?2:(A<=2000?3:(A<=3000?4:5));
+
+    // FONDO
+    const fE = A-2.4, fF = B-2.4;
+    const fondoWR = fE*fF*1*8*THICKNESS/1e6;
+    const fondoArea = fE*fF*1/1e6;
+    const fondoWN = fondoWR*1.05;
+    const fondoPerim = (fE+fF)*2;
+    const fondoFierroML = fierroCount*B/1000;
+
+    // LATERAL A (x2)
+    const laE = fE, laF = C+16.4;
+    const laWR = laE*laF*2*8*THICKNESS/1e6;
+    const laArea = laE*laF*2/1e6;
+    const laWN = laWR*1.05;
+    const laPerim = (laE+laF)*2;
+
+    // LATERAL B (x2)
+    const lbE = fF, lbF = laF;
+    const lbWR = lbE*lbF*2*8*THICKNESS/1e6;
+    const lbArea = lbE*lbF*2/1e6;
+    const lbWN = lbWR*1.05;
+    const lbPerim = (lbE+lbF)*2;
+
+    // TAPA
+    const tE = A, tF = B+50.4;
+    const tWR = tE*tF*1*8*THICKNESS/1e6;
+    const tArea = tE*tF*1/1e6;
+    const tWN = tWR*1.05;
+    const tPerim = (tE+tF)*2;
+
+    const totalWeightNom = fondoWN+laWN+lbWN+tWN;
+    const totalArea = fondoArea+laArea+lbArea+tArea;
+    const otrosPerim = 60*(boltsA+boltsB);
+    const totalPerim = fondoPerim+laPerim+lbPerim+tPerim+otrosPerim;
+
+    // Desarrollo de soldadura (cuerpo fraccionado vs. 1 pieza)
+    const cuerpoFracm = (fE+fF+laF+laF)*2/1000;
+    const cuerpo1Pieza = (B+C+C)*2/1000;
+    const soldPF = (fierroCount+boltsB+boltsA)*0.05;
+    const ensFracm = (cuerpoFracm+soldPF)*0.1;
+    const ens1Pieza = (cuerpo1Pieza+soldPF)*0.1;
+    const weldFracm = cuerpoFracm*0.3+soldPF+ensFracm;
+    const weld1Pieza = cuerpo1Pieza*0.3+soldPF+ens1Pieza;
+
+    const K29 = A>1000?1:0;
+    const desarrollo = A+2*C+2*foldBox-9.6;
+    const K31 = desarrollo>3000?1:0;
+    const fragmented = !(K29===0 && K31===0);
+
+    const weldLength = fragmented ? weldFracm : weld1Pieza;
+
+    const tipoFactor = fragmented?1.5:1;
+    const anchoFactor = B<=400?1:(B<=600?1.5:2);
+    const largoFactor = A<=400?1:(A<=600?1.5:2);
+    const maxFactor = Math.max(tipoFactor,anchoFactor,largoFactor);
+    const foldsCuerpo = fragmented?2:4;
+    const foldsLat = fragmented?4:2;
+    const foldsTapa = 2;
+    const totalFolds = foldsCuerpo+foldsLat+foldsTapa;
+    const bendingTime = totalFolds*maxFactor+5;
+
+    const lines = [];
+    function addLine(name, qty, unitCost, unit){
+      const direct = qty*unitCost;
+      const sale = direct*(1+admin)*(1+util);
+      lines.push({name, qty, unitCost, direct, sale, unit});
+    }
+    addLine('Plancha de acero', totalWeightNom, plateUnitPrice, 'kg');
+    addLine('Fierro 8 mm', fondoFierroML, s.priceFierroTira/6, 'm');
+    addLine('Pernos 3/8"x1"', boltsA+boltsB, s.pricePerno, 'jgo');
+    addLine('Corte láser CNC', totalPerim, laserUnitPrice, 'mm');
+    addLine('Plegado', bendingTime, s.pricePlegado, 'min');
+    addLine('Soldadura', weldLength, s.priceSoldadura, 'ml');
+    addLine('Pintura electrostática', totalArea*2, s.pricePintura, 'm²');
+    addLine('Ensamblado', totalArea, s.priceEnsamblado, 'm²');
+
+    const totalDirect = lines.reduce((acc,l)=>acc+l.direct,0);
+    const totalSale = lines.reduce((acc,l)=>acc+l.sale,0);
+
+    // Norma chilena de espesores mínimos (informativo, por panel individual)
+    function minThk(area){ return area>0.75?2:(area>0.25?1.5:1.2); }
+    const perPanelAreas = [fondoArea, laArea/2, lbArea/2, tArea];
+    const maxRequiredThk = Math.max(...perPanelAreas.map(minThk));
+    const meetsNorm = THICKNESS >= maxRequiredThk;
+
+    return {
+      lines, totalDirect, totalSale, fragmented, bendingTime, weldLength,
+      totalPerim, totalArea, totalWeightNom, meetsNorm, maxRequiredThk,
+      admin, util
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // FORMATTERS
+  // ---------------------------------------------------------------
+  const fmtCLP = (n) => '$' + Math.round(n).toLocaleString('es-CL');
+  const fmtNum = (n, d) => n.toLocaleString('es-CL', {minimumFractionDigits:d, maximumFractionDigits:d});
+  const fmtPct1 = (n) => n.toLocaleString('es-CL', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+
+  // ---------------------------------------------------------------
+  // DOM REFS
+  // ---------------------------------------------------------------
+  const $ = (id) => document.getElementById(id);
+
+  const rngA = $('rng-A'), numA = $('num-A');
+  const rngB = $('rng-B'), numB = $('num-B');
+  const rngC = $('rng-C'), numC = $('num-C');
+  const rngUtil = $('rng-util'), readoutUtil = $('readout-util');
+  const rngAdmin = $('rng-admin'), readoutAdmin = $('readout-admin');
+
+  const advIds = {
+    pricePlancha:'adv-plancha', priceFierroTira:'adv-fierro', pricePerno:'adv-perno',
+    priceLaser:'adv-laser', pricePlegado:'adv-plegado', priceSoldadura:'adv-soldadura',
+    pricePintura:'adv-pintura', priceEnsamblado:'adv-ensamblado', foldBox:'adv-pliegue'
+  };
+
+  const DEFAULTS = {
+    A:1000, B:800, C:400, util:70, admin:15,
+    pricePlancha:700, priceFierroTira:3941, pricePerno:145, priceLaser:1,
+    pricePlegado:261.07, priceSoldadura:3591.84, pricePintura:3800.78,
+    priceEnsamblado:4139.89, foldBox:20
+  };
+
+  function readState(){
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, isNaN(v) ? lo : v));
+    const s = {
+      A: clamp(Number(numA.value), 50, 6000),
+      B: clamp(Number(numB.value), 50, 6000),
+      C: clamp(Number(numC.value), 30, 6000),
+      util: Number(rngUtil.value),
+      admin: Number(rngAdmin.value)
+    };
+    for(const key in advIds){ s[key] = Math.max(0, Number($(advIds[key]).value) || 0); }
+    return s;
+  }
+
+  // ---------------------------------------------------------------
+  // BLUEPRINT (pseudo-3D SVG, scales live with A/B/C)
+  // ---------------------------------------------------------------
+  function renderBlueprint(A,B,C){
+    const maxDim = Math.max(A,B,C);
+    const scale = 150/maxDim;
+    const Ws = A*scale, Hs = B*scale, Ds = C*scale;
+    const shearX = Ds*0.62, shearY = -Ds*0.36;
+
+    const ox = 100, oy = 235;
+    const FLt = {x:ox, y:oy-Hs};
+    const FRt = {x:ox+Ws, y:oy-Hs};
+    const FRb = {x:ox+Ws, y:oy};
+    const FLb = {x:ox, y:oy};
+    const BLt = {x:FLt.x+shearX, y:FLt.y+shearY};
+    const BRt = {x:FRt.x+shearX, y:FRt.y+shearY};
+    const BRb = {x:FRb.x+shearX, y:FRb.y+shearY};
+
+    const pts = (arr) => arr.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+
+    // dimension line helpers
+    const dimY = oy + 26;
+    const dimX = ox - 26;
+
+    return `
+<svg class="blueprint-svg" viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowL" markerWidth="8" markerHeight="8" refX="1" refY="3" orient="auto">
+      <path d="M7,0 L7,6 L1,3 z" fill="#9aa7b0"/>
+    </marker>
+    <marker id="arrowR" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M1,0 L1,6 L7,3 z" fill="#9aa7b0"/>
+    </marker>
+  </defs>
+
+  <!-- top face -->
+  <polygon points="${pts([FLt,FRt,BRt,BLt])}" fill="#3a4854" stroke="#586b78" stroke-width="1.2"/>
+  <!-- side face -->
+  <polygon points="${pts([FRt,FRb,BRb,BRt])}" fill="#27323b" stroke="#586b78" stroke-width="1.2"/>
+  <!-- front face -->
+  <polygon points="${pts([FLt,FRt,FRb,FLb])}" fill="#4c5e6c" stroke="#7991a1" stroke-width="1.3"/>
+
+  <!-- largo dimension (bottom) -->
+  <line x1="${FLb.x}" y1="${dimY}" x2="${FRb.x}" y2="${dimY}" stroke="#6b7780" stroke-width="1" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <text x="${(FLb.x+FRb.x)/2}" y="${dimY+16}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#9aa7b0">A · Largo ${A} mm</text>
+
+  <!-- ancho dimension (left) -->
+  <line x1="${dimX}" y1="${FLt.y}" x2="${dimX}" y2="${FLb.y}" stroke="#6b7780" stroke-width="1" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <text x="${dimX-8}" y="${(FLt.y+FLb.y)/2}" text-anchor="end" font-family="IBM Plex Mono" font-size="11" fill="#9aa7b0">B · Ancho ${B} mm</text>
+
+  <!-- profundidad dimension (top receding edge) -->
+  <line x1="${FLt.x}" y1="${FLt.y-10}" x2="${BLt.x}" y2="${BLt.y-10}" stroke="#6b7780" stroke-width="1" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <text x="${(FLt.x+BLt.x)/2}" y="${Math.min(FLt.y,BLt.y)-18}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#9aa7b0">C · Profundidad ${C} mm</text>
+
+  <text x="${FLb.x+6}" y="${FLb.y-8}" font-family="IBM Plex Mono" font-size="10" fill="#e2672b">e = 2 mm</text>
+</svg>`;
+  }
+
+  // ---------------------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------------------
+  const COLORS = ['#9fb0bd','#7991a1','#6f8aa3','#5b7186','#a9bdcc','#dba94a','#e2672b','#8aa0ad'];
+
+  function render(){
+    const s = readState();
+    const r = calc(s);
+
+    // Blueprint
+    $('blueprint-holder').innerHTML = renderBlueprint(s.A, s.B, s.C);
+    $('blueprint-caption').textContent = `${s.A} × ${s.B} × ${s.C} mm · e=2 mm`;
+
+    // Status chips
+    const chipCuerpo = $('chip-cuerpo');
+    if(r.fragmented){
+      chipCuerpo.textContent = 'FRACCIONADO';
+      chipCuerpo.className = 'chip-value warn';
+    } else {
+      chipCuerpo.textContent = 'EN 1 PIEZA';
+      chipCuerpo.className = 'chip-value ok';
+    }
+    const chipNorma = $('chip-norma');
+    if(r.meetsNorm){
+      chipNorma.textContent = 'SÍ';
+      chipNorma.className = 'chip-value ok';
+    } else {
+      chipNorma.textContent = `NO (req. ${fmtNum(r.maxRequiredThk,1)} mm)`;
+      chipNorma.className = 'chip-value bad';
+    }
+    $('chip-plegado').textContent = fmtNum(r.bendingTime,0) + ' min';
+
+    // Breakdown table
+    const tbody = $('breakdown-body');
+    tbody.innerHTML = '';
+    const maxDirect = Math.max(...r.lines.map(l=>l.direct));
+    r.lines.forEach((l,i)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${l.name}</td>
+        <td>${fmtNum(l.qty,2)}<span class="qty-unit">${l.unit}</span></td>
+        <td>${fmtCLP(l.unitCost)}</td>
+        <td>${fmtCLP(l.direct)}</td>
+        <td>${fmtCLP(l.sale)}</td>`;
+      tbody.appendChild(tr);
+    });
+    $('tot-direct').textContent = fmtCLP(r.totalDirect);
+    $('tot-sale').textContent = fmtCLP(r.totalSale);
+
+    // Composition bar
+    const totalD = r.totalDirect;
+    const bar = $('composition-bar');
+    bar.innerHTML = r.lines.map((l,i)=>{
+      const pct = (l.direct/totalD*100);
+      return `<span style="width:${pct.toFixed(3)}%;background:${COLORS[i % COLORS.length]}"></span>`;
+    }).join('');
+    const legend = $('composition-legend');
+    legend.innerHTML = r.lines.map((l,i)=>{
+      const pct = (l.direct/totalD*100);
+      return `<span class="item"><span class="sw" style="background:${COLORS[i % COLORS.length]}"></span>${l.name} · ${fmtNum(pct,1)}%</span>`;
+    }).join('');
+
+    // Big numbers
+    $('big-direct').textContent = fmtCLP(r.totalDirect);
+    $('big-sale').textContent = fmtCLP(r.totalSale);
+    $('big-sale-sub').textContent = `multiplicador ×${fmtNum(r.totalSale/r.totalDirect,3)}`;
+    $('big-profit').textContent = fmtCLP(r.totalSale - r.totalDirect);
+
+    // Competition panel
+    renderCompetition(s, r);
+
+    return r;
+  }
+
+  function renderCompetition(s, r){
+    const out = $('competencia-result');
+    const compPriceRaw = $('inp-competidor').value;
+    const minMargin = Number($('inp-margen-min').value);
+
+    if(compPriceRaw === '' || isNaN(Number(compPriceRaw))){
+      out.innerHTML = '<p class="empty-hint">Ingresa el precio de la competencia para ver si podemos igualarlo sin perder margen.</p>';
+      return;
+    }
+    const compPrice = Number(compPriceRaw);
+    const directWithAdmin = r.totalDirect*(1+r.admin);
+    const utilIfMatch = (compPrice/directWithAdmin - 1) * 100;
+    const minAcceptablePrice = directWithAdmin*(1+minMargin/100);
+    const diffPct = (compPrice - r.totalSale)/r.totalSale*100;
+    const canMatch = compPrice >= minAcceptablePrice;
+    const coversCosts = compPrice >= directWithAdmin;
+
+    let verdictClass, verdictText;
+    if(!coversCosts){
+      verdictClass = 'bad';
+      verdictText = `Vender a ${fmtCLP(compPrice)} significa pérdida: ni siquiera cubre el costo directo más el ${fmtNum(s.admin,1)}% administrativo (${fmtCLP(directWithAdmin)}). No conviene igualar ese precio.`;
+    } else if(canMatch){
+      verdictClass = 'ok';
+      verdictText = `Sí podemos igualar o bajar a ${fmtCLP(compPrice)}: el margen de utilidad resultante sería de <strong>${fmtNum(utilIfMatch,1)}%</strong>, por encima de tu mínimo aceptable de ${fmtNum(minMargin,1)}%.`;
+    } else {
+      verdictClass = 'bad';
+      verdictText = `No conviene llegar a ${fmtCLP(compPrice)}: el margen resultante sería de <strong>${fmtNum(utilIfMatch,1)}%</strong>, por debajo de tu mínimo aceptable de ${fmtNum(minMargin,1)}%. El precio más bajo que mantiene ese mínimo es ${fmtCLP(minAcceptablePrice)}.`;
+    }
+
+    out.innerHTML = `
+      <div class="verdict-stats">
+        <div class="vs-item"><div class="vs-label">Tu precio actual</div><div class="vs-value">${fmtCLP(r.totalSale)}</div></div>
+        <div class="vs-item"><div class="vs-label">Diferencia vs. competencia</div><div class="vs-value" style="color:${diffPct<0?'var(--bad)':'var(--good)'}">${diffPct>0?'+':''}${fmtNum(diffPct,1)}%</div></div>
+        <div class="vs-item"><div class="vs-label">Margen si igualamos</div><div class="vs-value">${fmtNum(utilIfMatch,1)}%</div></div>
+        <div class="vs-item"><div class="vs-label">Precio mínimo (margen ${fmtNum(minMargin,1)}%)</div><div class="vs-value">${fmtCLP(minAcceptablePrice)}</div></div>
+      </div>
+      <div class="verdict ${verdictClass}">${verdictText}</div>
+      <div style="margin-top:12px;">
+        <button class="btn" id="btn-match">Ajustar margen para igualar a la competencia</button>
+      </div>
+    `;
+
+    const btnMatch = $('btn-match');
+    if(btnMatch){
+      btnMatch.addEventListener('click', ()=>{
+        const clamped = Math.max(0, Math.min(150, utilIfMatch));
+        rngUtil.value = clamped.toFixed(0);
+        readoutUtil.textContent = fmtNum(clamped,0);
+        render();
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // BINDINGS
+  // ---------------------------------------------------------------
+  function bindPair(range, num, onChange){
+    range.addEventListener('input', ()=>{ num.value = range.value; onChange(); });
+    num.addEventListener('input', ()=>{
+      let v = Number(num.value);
+      if(isNaN(v)) return;
+      v = Math.min(Number(range.max), Math.max(Number(range.min), v));
+      range.value = v;
+      onChange();
+    });
+  }
+
+  bindPair(rngA, numA, render);
+  bindPair(rngB, numB, render);
+  bindPair(rngC, numC, render);
+
+  rngUtil.addEventListener('input', ()=>{ readoutUtil.textContent = rngUtil.value; render(); });
+  rngAdmin.addEventListener('input', ()=>{ readoutAdmin.textContent = fmtNum(Number(rngAdmin.value),1); render(); });
+
+  $('inp-competidor').addEventListener('input', render);
+  $('inp-margen-min').addEventListener('input', render);
+
+  for(const key in advIds){ $(advIds[key]).addEventListener('input', render); }
+
+  $('btn-reset').addEventListener('click', ()=>{
+    numA.value = rngA.value = DEFAULTS.A;
+    numB.value = rngB.value = DEFAULTS.B;
+    numC.value = rngC.value = DEFAULTS.C;
+    rngUtil.value = DEFAULTS.util; readoutUtil.textContent = DEFAULTS.util;
+    rngAdmin.value = DEFAULTS.admin; readoutAdmin.textContent = fmtNum(DEFAULTS.admin,1);
+    for(const key in advIds){ $(advIds[key]).value = DEFAULTS[key]; }
+    render();
+  });
+
+  // initial readouts
+  readoutAdmin.textContent = fmtNum(Number(rngAdmin.value),1);
+
+  render();
+})();
+</script>
+</body>
+</html>
